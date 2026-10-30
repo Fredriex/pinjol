@@ -14,21 +14,35 @@ use Carbon\Carbon;
 class PetugasController extends Controller
 {
     // Dashboard Petugas: Daftar Antrean Serah Terima & Pengembalian
+    // Dashboard Petugas: Daftar Antrean Serah Terima & Pengembalian
     public function index()
     {
         // Antrean Barang Siap Diserahkan (Status: Disetujui)
-        $siapSerah = Peminjaman::with(['user', 'aset'])
+        $peminjamanDisetujui = Peminjaman::with(['user', 'aset'])
             ->where('status_pengajuan', 'Disetujui')
             ->orderBy('waktu_mulai', 'asc')
             ->get();
 
         // Antrean Barang Siap Dikembalikan (Status: Dipinjam)
-        $siapKembali = Peminjaman::with(['user', 'aset', 'inspeksi'])
+        $peminjamanDipinjam = Peminjaman::with(['user', 'aset', 'inspeksi'])
             ->where('status_pengajuan', 'Dipinjam')
             ->orderBy('waktu_selesai', 'asc')
             ->get();
 
-        return view('petugas.dashboard', compact('siapSerah', 'siapKembali'));
+        // Total Transaksi Selesai
+        $totalSelesai = Peminjaman::where('status_pengajuan', 'Selesai')->count();
+
+        // Gabungan Antrean Pelayanan Gudang (Disetujui & Dipinjam) untuk Tabel
+        $antreanPetugas = Peminjaman::with(['user', 'aset', 'inspeksi'])
+            ->whereIn('status_pengajuan', ['Disetujui', 'Dipinjam'])
+            ->orderBy('id_peminjaman', 'desc')->get();
+    
+        return view('petugas.dashboard', compact(
+            'peminjamanDisetujui',
+            'peminjamanDipinjam',
+            'totalSelesai',
+            'antreanPetugas'
+        ));
     }
 
     // Form Serah Terima (Baseline Condition)

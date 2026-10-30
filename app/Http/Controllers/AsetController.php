@@ -15,8 +15,8 @@ class AsetController extends Controller
         $status = $request->get('status');
 
         $asets = Aset::when($kategori, function ($query) use ($kategori) {
-                return $query->where('kategori', $kategori);
-            })
+            return $query->where('kategori', $kategori);
+        })
             ->when($status !== null && $status !== '', function ($query) use ($status) {
                 return $query->where('status_aktif', $status);
             })
@@ -88,7 +88,7 @@ class AsetController extends Controller
     public function toggleStatus($id)
     {
         $aset = Aset::findOrFail($id);
-        
+
         // Cek apakah aset pernah digunakan pada transaksi peminjaman
         $adaTransaksi = Peminjaman::where('id_aset', $aset->id_aset)->exists();
 
@@ -104,5 +104,27 @@ class AsetController extends Controller
         // Jika belum pernah digunakan, boleh di-hard delete
         $aset->delete();
         return back()->with('success', 'Aset berhasil dihapus secara permanen.');
+    }
+
+    public function destroy($id)
+    {
+        // Cari aset berdasarkan ID
+        $aset = Aset::findOrFail($id);
+
+        // Proteksi: Cek apakah aset sedang dalam status dipinjam / pengajuan aktif
+        $hasActivePeminjaman = $aset->peminjaman()
+            ->whereIn('status_pengajuan', ['Menunggu', 'Disetujui', 'Dipinjam'])
+            ->exists();
+
+        if ($hasActivePeminjaman) {
+            return redirect()->route('admin.aset.index')
+                ->with('error', 'Aset tidak dapat dihapus karena masih terikat dalam transaksi peminjaman aktif!');
+        }
+
+        // Hapus data aset
+        $aset->delete();
+
+        return redirect()->route('admin.aset.index')
+            ->with('success', 'Aset "' . $aset->nama_aset . '" berhasil dihapus dari master data.');
     }
 }

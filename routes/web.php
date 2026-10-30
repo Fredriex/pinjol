@@ -50,7 +50,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/aset/{id}/edit', [AsetController::class, 'edit'])->name('aset.edit');
         Route::put('/aset/{id}', [AsetController::class, 'update'])->name('aset.update');
         Route::patch('/aset/{id}/toggle-status', [AsetController::class, 'toggleStatus'])->name('aset.toggleStatus');
-
+        Route::delete('/aset/{id}', [AsetController::class, 'destroy'])->name('aset.destroy');
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::patch('/users/{id}/toggle-banned', [UserController::class, 'toggleBanned'])->name('users.toggleBanned');
     });
@@ -67,6 +67,10 @@ Route::middleware(['auth'])->group(function () {
         // Pengembalian
         Route::get('/pengembalian/{id}', [PetugasController::class, 'pengembalianForm'])->name('pengembalian.form');
         Route::post('/pengembalian/{id}', [PetugasController::class, 'processPengembalian'])->name('pengembalian.process');
+
+        // Rute Opsi A (Menggunakan 1 Form Inspeksi Dinamis):
+        Route::get('/inspeksi/{id}', [PetugasController::class, 'serahTerimaForm'])->name('inspeksi.create');
+        Route::post('/inspeksi/{id}', [PetugasController::class, 'processSerahTerima'])->name('inspeksi.store');
     });
 
     // ==========================================
